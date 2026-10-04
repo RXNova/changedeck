@@ -12,3 +12,4 @@ node_modules/**
 *.vsix
 docs/**
 resources/src/**
+CONTRIBUTING.md

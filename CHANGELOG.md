@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.10
+
+- New extension description: what Changedeck is, a quick start, feature details with images, useful commands, and links to the source code and issue tracker. Developer notes moved to CONTRIBUTING.md.
+
 ## 1.7.9
 
 - No functional changes. The end-to-end test now shelves through the same code path as the Shelve command, which removes an intermittent test failure on CI.

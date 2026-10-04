@@ -2,7 +2,7 @@
   "name": "changedeck",
   "displayName": "Changedeck: JetBrains-style Changelists for Git",
   "description": "JetBrains-style changelists for Git: group changes into named lists (down to individual changes within a file), commit selected changes, shelve and unshelve, roll back, and create patches.",
-  "version": "1.7.9",
+  "version": "1.7.10",
   "publisher": "rxnova",
   "license": "MIT",
   "engines": {
