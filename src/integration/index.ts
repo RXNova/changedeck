@@ -179,7 +179,16 @@ async function partialFlow(api: ChangelistsApi, root: string): Promise<void> {
 	await vscode.commands.executeCommand('changelists.unshelve', node);
 	await waitFor('ELEVEN back', () => /ELEVEN/.test(readFileSync(p, 'utf8')));
 	assert.match(readFileSync(p, 'utf8'), /THREE/);
-	await waitFor('unshelved change is in Feature', () => state.model.isPartial(p) && state.model.listsOf(p).includes(feature.id));
+	await waitFor('unshelved change is in Feature', () => state.model.isPartial(p) && state.model.listsOf(p).includes(feature.id)).catch(async e => {
+		// What the tracker and the model think, for diagnosing platform differences.
+		console.log('[integration] debug', JSON.stringify({
+			change: state.change(p), partial: state.model.partialOf(p), listOf: state.model.listOf(p), lists: state.model.listsOf(p),
+			active: state.model.active.id, changes: changes.id, feature: feature.id, pending: state.model.pendingListFor(p),
+			cache: tracker.hunks(p), refreshed: await tracker.refreshNow(p),
+			docDirty: doc.isDirty, docText: doc.getText(), disk: readFileSync(p, 'utf8'), eol: doc.eol,
+		}));
+		throw e;
+	});
 	const final = await tracker.refreshNow(p);
 	const elevenIdx = final!.hunks.findIndex(h => h.newStart === 10);
 	assert.equal(final!.lists[elevenIdx], feature.id);
