@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#2E2A6B"/>
+      <stop offset="0.6" stop-color="#151A3A"/>
+      <stop offset="1" stop-color="#0B0E22"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#5CC8FF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#5CC8FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7FE3FF"/>
+      <stop offset="1" stop-color="#4E7BFF"/>
+    </linearGradient>
+    <linearGradient id="mid" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD06B"/>
+      <stop offset="1" stop-color="#FF9A3D"/>
+    </linearGradient>
+    <linearGradient id="low" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C6A6FF"/>
+      <stop offset="1" stop-color="#8A5CF6"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="58" fill="url(#bg)"/>
+
+  <!-- shadow under the stack -->
+  <ellipse cx="128" cy="214" rx="78" ry="14" fill="#000" opacity="0.35"/>
+
+  <!-- bottom tile -->
+  <g>
+    <polygon points="46,170 128,211 128,225 46,184" fill="#5B36B8"/>
+    <polygon points="210,170 128,211 128,225 210,184" fill="#4A2A9C"/>
+    <polygon points="128,129 210,170 128,211 46,170" fill="url(#low)"/>
+  </g>
+  <!-- middle tile -->
+  <g>
+    <polygon points="46,136 128,177 128,191 46,150" fill="#D9741C"/>
+    <polygon points="210,136 128,177 128,191 210,150" fill="#B95E12"/>
+    <polygon points="128,95 210,136 128,177 46,136" fill="url(#mid)"/>
+  </g>
+
+  <!-- glow where the top tile lifts off -->
+  <ellipse cx="128" cy="120" rx="74" ry="30" fill="url(#glow)"/>
+  <!-- lift lines -->
+  <g stroke="#9FE4FF" stroke-width="4" stroke-linecap="round" opacity="0.7">
+    <path d="M40 104v14M216 104v14"/>
+    <path d="M58 122v8M198 122v8" opacity="0.6"/>
+  </g>
+
+  <!-- top tile, lifted -->
+  <g>
+    <polygon points="46,78 128,119 128,133 46,92" fill="#2F58D6"/>
+    <polygon points="210,78 128,119 128,133 210,92" fill="#2445B4"/>
+    <polygon points="128,37 210,78 128,119 46,78" fill="url(#top)"/>
+    <!-- check drawn on the tile's surface -->
+    <g transform="translate(126,78) scale(1,0.52)">
+      <path d="M-34,-2 L-12,24 L36,-30" fill="none" stroke="#0B0E22" stroke-opacity="0.28" stroke-width="17" stroke-linecap="round" stroke-linejoin="round" transform="translate(2,7)"/>
+      <path d="M-34,-2 L-12,24 L36,-30" fill="none" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- sparkles -->
+  <g fill="#FFFFFF">
+    <path d="M214 46l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" opacity="0.9"/>
+    <path d="M40 52l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" opacity="0.6"/>
+  </g>
+</svg>

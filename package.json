@@ -1,0 +1,1156 @@
+{
+  "name": "changedeck",
+  "displayName": "Changedeck: JetBrains-style Changelists for Git",
+  "description": "JetBrains-style changelists for Git: group changes into named lists (down to individual changes within a file), commit selected changes, shelve and unshelve, roll back, and create patches.",
+  "version": "1.7.5",
+  "publisher": "pradeep",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "keywords": [
+    "changelist",
+    "changelists",
+    "changedeck",
+    "git",
+    "shelf",
+    "jetbrains",
+    "intellij",
+    "partial commit",
+    "copilot"
+  ],
+  "main": "./dist/extension.js",
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Changedeck runs git commands in the workspace."
+    }
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "changedeck",
+          "title": "Changedeck",
+          "icon": "resources/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "changedeck": [
+        {
+          "id": "changelists.changes",
+          "name": "Changes"
+        },
+        {
+          "id": "changelists.commit",
+          "name": "Commit",
+          "type": "webview"
+        },
+        {
+          "id": "changelists.shelf",
+          "name": "Shelf"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "changelists.changes",
+        "contents": "No Git repository is open.\n[Open Folder](command:vscode.openFolder)",
+        "when": "!changelists.hasRepositories"
+      },
+      {
+        "view": "changelists.shelf",
+        "contents": "Nothing is shelved. Right-click a changelist or file and choose Shelve Changes to put work aside."
+      }
+    ],
+    "commands": [
+      {
+        "command": "changelists.newChangelist",
+        "title": "New Changelist...",
+        "category": "Changedeck",
+        "icon": "$(add)"
+      },
+      {
+        "command": "changelists.renameChangelist",
+        "title": "Rename Changelist...",
+        "category": "Changedeck",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "changelists.editDescription",
+        "title": "Edit Description...",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.deleteChangelist",
+        "title": "Delete Changelist",
+        "category": "Changedeck",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "changelists.setActive",
+        "title": "Set Active Changelist",
+        "category": "Changedeck",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "changelists.switchActive",
+        "title": "Switch Active Changelist...",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.moveToChangelist",
+        "title": "Move to Another Changelist...",
+        "category": "Changedeck",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "changelists.moveChange",
+        "title": "Move Change to Another Changelist...",
+        "category": "Changedeck",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "changelists.commitChangelist",
+        "title": "Commit Changelist...",
+        "category": "Changedeck",
+        "icon": "$(check)"
+      },
+      {
+        "command": "changelists.commit",
+        "title": "Commit",
+        "category": "Changedeck",
+        "icon": "$(check)"
+      },
+      {
+        "command": "changelists.commitAndPush",
+        "title": "Commit and Push",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.rollback",
+        "title": "Rollback...",
+        "category": "Changedeck",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "changelists.shelve",
+        "title": "Shelve Changes...",
+        "category": "Changedeck",
+        "icon": "$(archive)"
+      },
+      {
+        "command": "changelists.unshelve",
+        "title": "Unshelve",
+        "category": "Changedeck",
+        "icon": "$(reply)"
+      },
+      {
+        "command": "changelists.unshelveTo",
+        "title": "Unshelve to Changelist...",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.unshelveFile",
+        "title": "Unshelve This File",
+        "category": "Changedeck",
+        "icon": "$(reply)"
+      },
+      {
+        "command": "changelists.deleteShelf",
+        "title": "Delete Shelved Changes",
+        "category": "Changedeck",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "changelists.renameShelf",
+        "title": "Rename Shelved Changes...",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.openShelfDiff",
+        "title": "Show Shelved Diff",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.openDiff",
+        "title": "Show Diff",
+        "category": "Changedeck",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "changelists.openFile",
+        "title": "Open File",
+        "category": "Changedeck",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "changelists.createPatch",
+        "title": "Create Patch...",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.copyPatch",
+        "title": "Copy as Patch to Clipboard",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.applyPatch",
+        "title": "Apply Patch...",
+        "category": "Changedeck",
+        "icon": "$(file-add)"
+      },
+      {
+        "command": "changelists.addToVcs",
+        "title": "Add to Git",
+        "category": "Changedeck",
+        "icon": "$(add)"
+      },
+      {
+        "command": "changelists.include",
+        "title": "Include in Commit",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.exclude",
+        "title": "Exclude from Commit",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.includeAll",
+        "title": "Include All in Commit",
+        "category": "Changedeck",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "changelists.excludeAll",
+        "title": "Exclude All from Commit",
+        "category": "Changedeck",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "changelists.viewAsTree",
+        "title": "View as Tree",
+        "category": "Changedeck",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "changelists.viewAsList",
+        "title": "View as List",
+        "category": "Changedeck",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "changelists.refresh",
+        "title": "Refresh",
+        "category": "Changedeck",
+        "icon": "$(refresh)"
+      },
+      {
+        "category": "Changedeck",
+        "command": "changelists.undoRollback",
+        "title": "Undo Last Rollback",
+        "icon": "$(discard)"
+      },
+      {
+        "category": "Changedeck",
+        "command": "changelists.showLog",
+        "title": "Show Log",
+        "icon": "$(output)"
+      },
+      {
+        "category": "Changedeck",
+        "command": "changelists.focusCommit",
+        "title": "Focus Commit Message"
+      },
+      {
+        "category": "Changedeck",
+        "command": "changelists.commitMessageHistory",
+        "title": "Commit Message History...",
+        "icon": "$(history)"
+      },
+      {
+        "category": "Changedeck",
+        "command": "changelists.unshelveFiles",
+        "title": "Unshelve Files...",
+        "icon": "$(checklist)"
+      },
+      {
+        "category": "Changedeck",
+        "command": "changelists.moveHunksTo",
+        "title": "Move Changes to Changelist"
+      },
+      {
+        "command": "changelists.generateCommitMessage",
+        "title": "Generate Commit Message with Copilot",
+        "category": "Changedeck",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "changelists.stopGeneratingCommitMessage",
+        "title": "Stop Generating Commit Message",
+        "category": "Changedeck",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "changelists.excludeChange",
+        "title": "Leave Change Out of Commit",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.includeChange",
+        "title": "Include Change in Commit",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.setColor",
+        "title": "Set Color...",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.linkBranch",
+        "title": "Link to Branch...",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.unlinkBranch",
+        "title": "Unlink from Branch",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.switchBranch",
+        "title": "Switch Branch...",
+        "category": "Changedeck",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "changelists.addToGitignore",
+        "title": "Add to .gitignore",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.rollbackHistory",
+        "title": "Rollback History...",
+        "category": "Changedeck",
+        "icon": "$(history)"
+      },
+      {
+        "command": "changelists.compareShelfWithCurrent",
+        "title": "Compare with Current File",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.exportShelf",
+        "title": "Export as Patch...",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.importShelf",
+        "title": "Import Patch to Shelf...",
+        "category": "Changedeck",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "changelists.suggestShelfName",
+        "title": "Suggest Name with Copilot",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.suggestChangelists",
+        "title": "Suggest Changelists with Copilot",
+        "category": "Changedeck",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "changelists.suggestName",
+        "title": "Suggest Name with Copilot",
+        "category": "Changedeck"
+      },
+      {
+        "command": "changelists.reviewChanges",
+        "title": "Review Checked Changes with Copilot",
+        "category": "Changedeck",
+        "icon": "$(comment-discussion)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "changelists.generateCommitMessage",
+          "when": "view == changelists.commit && !changelists.generatingMessage",
+          "group": "navigation@0"
+        },
+        {
+          "command": "changelists.stopGeneratingCommitMessage",
+          "when": "view == changelists.commit && changelists.generatingMessage",
+          "group": "navigation@0"
+        },
+        {
+          "command": "changelists.newChangelist",
+          "when": "view == changelists.changes",
+          "group": "navigation@1"
+        },
+        {
+          "command": "changelists.viewAsTree",
+          "when": "view == changelists.changes && config.changelists.viewMode == list",
+          "group": "navigation@2"
+        },
+        {
+          "command": "changelists.viewAsList",
+          "when": "view == changelists.changes && config.changelists.viewMode == tree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "changelists.refresh",
+          "when": "view == changelists.changes",
+          "group": "navigation@3"
+        },
+        {
+          "command": "changelists.includeAll",
+          "when": "view == changelists.changes",
+          "group": "1_include@1"
+        },
+        {
+          "command": "changelists.excludeAll",
+          "when": "view == changelists.changes",
+          "group": "1_include@2"
+        },
+        {
+          "command": "changelists.switchActive",
+          "when": "view == changelists.changes",
+          "group": "2_lists@1"
+        },
+        {
+          "command": "changelists.applyPatch",
+          "when": "view == changelists.changes",
+          "group": "3_patch@1"
+        },
+        {
+          "command": "changelists.refresh",
+          "when": "view == changelists.shelf",
+          "group": "navigation@1"
+        },
+        {
+          "command": "changelists.commitMessageHistory",
+          "when": "view == changelists.commit",
+          "group": "navigation@1"
+        },
+        {
+          "command": "changelists.undoRollback",
+          "when": "view == changelists.changes",
+          "group": "4_undo@1"
+        },
+        {
+          "command": "changelists.showLog",
+          "when": "view == changelists.changes",
+          "group": "9_log@1"
+        },
+        {
+          "command": "changelists.suggestChangelists",
+          "when": "view == changelists.changes",
+          "group": "5_copilot@1"
+        },
+        {
+          "command": "changelists.switchBranch",
+          "when": "view == changelists.changes",
+          "group": "2_lists@2"
+        },
+        {
+          "command": "changelists.rollbackHistory",
+          "when": "view == changelists.changes",
+          "group": "4_undo@2"
+        },
+        {
+          "command": "changelists.importShelf",
+          "when": "view == changelists.shelf",
+          "group": "navigation@2"
+        },
+        {
+          "command": "changelists.reviewChanges",
+          "when": "view == changelists.commit",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "changelists.commitChangelist",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "inline@1"
+        },
+        {
+          "command": "changelists.setActive",
+          "when": "view == changelists.changes && viewItem == changelist",
+          "group": "inline@2"
+        },
+        {
+          "command": "changelists.openFile",
+          "when": "view == changelists.changes && viewItem =~ /^file/",
+          "group": "inline@1"
+        },
+        {
+          "command": "changelists.addToVcs",
+          "when": "view == changelists.changes && viewItem =~ /^(file\\.untracked|unversioned|folder\\.untracked)/",
+          "group": "inline@2"
+        },
+        {
+          "command": "changelists.rollback",
+          "when": "view == changelists.changes && viewItem =~ /^(file|folder|changelist)/",
+          "group": "inline@3"
+        },
+        {
+          "command": "changelists.commitChangelist",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "1_commit@1"
+        },
+        {
+          "command": "changelists.setActive",
+          "when": "view == changelists.changes && viewItem == changelist",
+          "group": "2_list@1"
+        },
+        {
+          "command": "changelists.renameChangelist",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "2_list@2"
+        },
+        {
+          "command": "changelists.editDescription",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "2_list@2b"
+        },
+        {
+          "command": "changelists.deleteChangelist",
+          "when": "view == changelists.changes && viewItem == changelist",
+          "group": "2_list@3"
+        },
+        {
+          "command": "changelists.newChangelist",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "2_list@4"
+        },
+        {
+          "command": "changelists.openDiff",
+          "when": "view == changelists.changes && viewItem =~ /^file/",
+          "group": "1_open@1"
+        },
+        {
+          "command": "changelists.openFile",
+          "when": "view == changelists.changes && viewItem =~ /^file/",
+          "group": "1_open@2"
+        },
+        {
+          "command": "changelists.moveToChangelist",
+          "when": "view == changelists.changes && viewItem =~ /^(file|folder|unversioned)/",
+          "group": "3_move@1"
+        },
+        {
+          "command": "changelists.include",
+          "when": "view == changelists.changes && viewItem =~ /^(file|folder|changelist)/",
+          "group": "4_include@1"
+        },
+        {
+          "command": "changelists.exclude",
+          "when": "view == changelists.changes && viewItem =~ /^(file|folder|changelist)/",
+          "group": "4_include@2"
+        },
+        {
+          "command": "changelists.addToVcs",
+          "when": "view == changelists.changes && viewItem =~ /^(file\\.untracked|unversioned|folder\\.untracked)/",
+          "group": "5_vcs@1"
+        },
+        {
+          "command": "changelists.shelve",
+          "when": "view == changelists.changes && viewItem =~ /^(file|folder|changelist)/",
+          "group": "6_changes@1"
+        },
+        {
+          "command": "changelists.rollback",
+          "when": "view == changelists.changes && viewItem =~ /^(file|folder|changelist|unversioned)/",
+          "group": "6_changes@2"
+        },
+        {
+          "command": "changelists.createPatch",
+          "when": "view == changelists.changes && viewItem =~ /^(file|folder|changelist)/",
+          "group": "7_patch@1"
+        },
+        {
+          "command": "changelists.copyPatch",
+          "when": "view == changelists.changes && viewItem =~ /^(file|folder|changelist)/",
+          "group": "7_patch@2"
+        },
+        {
+          "command": "changelists.unshelve",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "inline@1"
+        },
+        {
+          "command": "changelists.deleteShelf",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "inline@2"
+        },
+        {
+          "command": "changelists.unshelve",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "1_unshelve@1"
+        },
+        {
+          "command": "changelists.unshelveTo",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "1_unshelve@2"
+        },
+        {
+          "command": "changelists.renameShelf",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "2_edit@1"
+        },
+        {
+          "command": "changelists.deleteShelf",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "2_edit@2"
+        },
+        {
+          "command": "changelists.openShelfDiff",
+          "when": "view == changelists.shelf && viewItem == shelfFile",
+          "group": "1_open@1"
+        },
+        {
+          "command": "changelists.unshelveFile",
+          "when": "view == changelists.shelf && viewItem == shelfFile",
+          "group": "inline@1"
+        },
+        {
+          "command": "changelists.unshelveFile",
+          "when": "view == changelists.shelf && viewItem == shelfFile",
+          "group": "1_open@2"
+        },
+        {
+          "command": "changelists.unshelveFiles",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "1_unshelve@3"
+        },
+        {
+          "command": "changelists.setColor",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "2_list@5"
+        },
+        {
+          "command": "changelists.linkBranch",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "3_branch@1"
+        },
+        {
+          "command": "changelists.unlinkBranch",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "3_branch@2"
+        },
+        {
+          "command": "changelists.suggestChangelists",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "8_copilot@1"
+        },
+        {
+          "command": "changelists.suggestName",
+          "when": "view == changelists.changes && viewItem =~ /^changelist/",
+          "group": "8_copilot@2"
+        },
+        {
+          "command": "changelists.addToGitignore",
+          "when": "view == changelists.changes && viewItem =~ /^(file\\.untracked|folder\\.untracked)/",
+          "group": "5_vcs@2"
+        },
+        {
+          "command": "changelists.compareShelfWithCurrent",
+          "when": "view == changelists.shelf && viewItem == shelfFile",
+          "group": "1_open@3"
+        },
+        {
+          "command": "changelists.exportShelf",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "3_patch@1"
+        },
+        {
+          "command": "changelists.suggestShelfName",
+          "when": "view == changelists.shelf && viewItem == shelf",
+          "group": "2_edit@0"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "changelists.moveToChangelist",
+          "when": "changelists.hasRepositories && !explorerResourceIsFolder",
+          "group": "7_changelists@1"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "changelists.moveToChangelist",
+          "when": "changelists.hasRepositories && resourceScheme == file",
+          "group": "7_changelists@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "changelists.deleteChangelist",
+          "when": "false"
+        },
+        {
+          "command": "changelists.setActive",
+          "when": "false"
+        },
+        {
+          "command": "changelists.commitChangelist",
+          "when": "false"
+        },
+        {
+          "command": "changelists.deleteShelf",
+          "when": "false"
+        },
+        {
+          "command": "changelists.renameShelf",
+          "when": "false"
+        },
+        {
+          "command": "changelists.unshelveTo",
+          "when": "false"
+        },
+        {
+          "command": "changelists.openShelfDiff",
+          "when": "false"
+        },
+        {
+          "command": "changelists.include",
+          "when": "false"
+        },
+        {
+          "command": "changelists.exclude",
+          "when": "false"
+        },
+        {
+          "command": "changelists.addToVcs",
+          "when": "false"
+        },
+        {
+          "command": "changelists.viewAsTree",
+          "when": "false"
+        },
+        {
+          "command": "changelists.viewAsList",
+          "when": "false"
+        },
+        {
+          "command": "changelists.unshelveFile",
+          "when": "false"
+        },
+        {
+          "command": "changelists.moveChange",
+          "when": "changelists.editorHasChanges"
+        },
+        {
+          "command": "changelists.moveHunksTo",
+          "when": "false"
+        },
+        {
+          "command": "changelists.renameChangelist",
+          "when": "false"
+        },
+        {
+          "command": "changelists.editDescription",
+          "when": "false"
+        },
+        {
+          "command": "changelists.stopGeneratingCommitMessage",
+          "when": "changelists.generatingMessage"
+        },
+        {
+          "command": "changelists.setColor",
+          "when": "false"
+        },
+        {
+          "command": "changelists.unlinkBranch",
+          "when": "false"
+        },
+        {
+          "command": "changelists.addToGitignore",
+          "when": "false"
+        },
+        {
+          "command": "changelists.compareShelfWithCurrent",
+          "when": "false"
+        },
+        {
+          "command": "changelists.suggestShelfName",
+          "when": "false"
+        },
+        {
+          "command": "changelists.excludeChange",
+          "when": "changelists.editorCanSplit"
+        },
+        {
+          "command": "changelists.includeChange",
+          "when": "changelists.editorCanSplit"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "changelists.moveChange",
+          "when": "changelists.editorHasChanges && resourceScheme == file",
+          "group": "1_modification@9"
+        },
+        {
+          "command": "changelists.excludeChange",
+          "when": "changelists.editorCanSplit && resourceScheme == file",
+          "group": "1_modification@9a"
+        },
+        {
+          "command": "changelists.includeChange",
+          "when": "changelists.editorCanSplit && resourceScheme == file",
+          "group": "1_modification@9b"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Changedeck",
+      "properties": {
+        "changelists.viewMode": {
+          "type": "string",
+          "enum": [
+            "list",
+            "tree"
+          ],
+          "default": "list",
+          "description": "Show the files in each changelist as a flat list or grouped by folder."
+        },
+        "changelists.showUnversionedFiles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show untracked files in an Unversioned Files group."
+        },
+        "changelists.untrackedFilesGoToActive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Put new untracked files in the active changelist instead of Unversioned Files."
+        },
+        "changelists.confirmRollback": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ask before rolling back changes."
+        },
+        "changelists.deleteShelfAfterUnshelve": {
+          "type": "boolean",
+          "default": true,
+          "description": "Delete shelved changes once they unshelve without conflicts."
+        },
+        "changelists.deleteEmptyChangelistAfterCommit": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "always",
+            "never"
+          ],
+          "default": "ask",
+          "description": "What to do with a changelist (other than the active one) that becomes empty after a commit."
+        },
+        "changelists.saveBeforeCommit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Save unsaved editors for the files being committed, shelved or patched first."
+        },
+        "changelists.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the active changelist in the status bar."
+        },
+        "changelists.partialChangelists": {
+          "type": "boolean",
+          "default": true,
+          "description": "Track changes line by line so a file can be split across changelists: new edits go to the active changelist, and each change can be moved on its own. Turning this off puts every file back into a single changelist."
+        },
+        "changelists.codeLens": {
+          "type": "string",
+          "enum": [
+            "partial",
+            "always",
+            "never"
+          ],
+          "enumDescriptions": [
+            "Only in files whose changes are split across changelists",
+            "In every changed file that is open",
+            "Never"
+          ],
+          "default": "partial",
+          "description": "Show the changelist above each change in the editor."
+        },
+        "changelists.editorMarkers": {
+          "type": "string",
+          "enum": [
+            "partial",
+            "always",
+            "never"
+          ],
+          "enumDescriptions": [
+            "Only in files whose changes are split across changelists",
+            "In every changed file",
+            "Never"
+          ],
+          "default": "partial",
+          "description": "Mark each change in the editor with a stripe in its changelist's color."
+        },
+        "changelists.commitMessage.instructions": {
+          "type": "string",
+          "default": "",
+          "editPresentation": "multilineText",
+          "markdownDescription": "Extra instructions for **Generate Commit Message**, for example \"Use Conventional Commits\" or \"Start with the ticket number from the branch name\"."
+        },
+        "changelists.commitMessage.modelFamily": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "GitHub Copilot model family used to generate commit messages, for example `gpt-4o` or `gpt-4.1`. Empty uses Copilot's default model."
+        },
+        "changelists.beforeCommit.format": {
+          "type": "boolean",
+          "default": false,
+          "description": "Format the checked files before committing."
+        },
+        "changelists.beforeCommit.organizeImports": {
+          "type": "boolean",
+          "default": false,
+          "description": "Organize imports in the checked files before committing."
+        },
+        "changelists.beforeCommit.checkProblems": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ask before committing files that have errors in the Problems panel."
+        },
+        "changelists.beforeCommit.checkTodos": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ask before committing changes that add TODO or FIXME comments."
+        },
+        "changelists.beforeCommit.command": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "A shell command to run in the repository before committing, for example `npm run lint`. The commit is cancelled if it fails. Its output goes to the Changedeck log."
+        },
+        "changelists.branch.shelveOnSwitch": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "always",
+            "never"
+          ],
+          "default": "ask",
+          "markdownDescription": "When **Changedeck: Switch Branch…** leaves a branch that has a linked changelist: shelve that list's changes and bring them back on return."
+        },
+        "changelists.explorerDecorations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mark files that are in a changelist other than the active one in the Explorer and on editor tabs."
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "changelists.moveChange",
+        "key": "alt+shift+m",
+        "when": "editorTextFocus && changelists.editorHasChanges",
+        "mac": "ctrl+alt+m"
+      },
+      {
+        "command": "changelists.moveToChangelist",
+        "key": "ctrl+alt+m",
+        "when": "focusedView == changelists.changes",
+        "mac": "cmd+alt+m"
+      },
+      {
+        "command": "changelists.renameChangelist",
+        "key": "f2",
+        "when": "focusedView == changelists.changes"
+      },
+      {
+        "command": "changelists.rollback",
+        "key": "ctrl+alt+z",
+        "mac": "cmd+alt+z",
+        "when": "focusedView == changelists.changes"
+      },
+      {
+        "command": "changelists.openDiff",
+        "key": "ctrl+d",
+        "mac": "cmd+d",
+        "when": "focusedView == changelists.changes"
+      },
+      {
+        "command": "changelists.focusCommit",
+        "key": "ctrl+alt+shift+k",
+        "mac": "cmd+alt+k"
+      },
+      {
+        "command": "changelists.switchActive",
+        "key": "ctrl+alt+shift+l",
+        "mac": "cmd+alt+shift+l"
+      }
+    ],
+    "colors": [
+      {
+        "id": "changelists.list1",
+        "description": "Color of the changelist at position 1 (tree icon and editor change markers).",
+        "defaults": {
+          "dark": "#4E9DE0",
+          "light": "#1F6FB5",
+          "highContrast": "#4E9DE0",
+          "highContrastLight": "#1F6FB5"
+        }
+      },
+      {
+        "id": "changelists.list2",
+        "description": "Color of the changelist at position 2 (tree icon and editor change markers).",
+        "defaults": {
+          "dark": "#E5A445",
+          "light": "#A86B0C",
+          "highContrast": "#E5A445",
+          "highContrastLight": "#A86B0C"
+        }
+      },
+      {
+        "id": "changelists.list3",
+        "description": "Color of the changelist at position 3 (tree icon and editor change markers).",
+        "defaults": {
+          "dark": "#9B7BE0",
+          "light": "#6A49B5",
+          "highContrast": "#9B7BE0",
+          "highContrastLight": "#6A49B5"
+        }
+      },
+      {
+        "id": "changelists.list4",
+        "description": "Color of the changelist at position 4 (tree icon and editor change markers).",
+        "defaults": {
+          "dark": "#4CB58C",
+          "light": "#1F7A55",
+          "highContrast": "#4CB58C",
+          "highContrastLight": "#1F7A55"
+        }
+      },
+      {
+        "id": "changelists.list5",
+        "description": "Color of the changelist at position 5 (tree icon and editor change markers).",
+        "defaults": {
+          "dark": "#E0607E",
+          "light": "#B0304E",
+          "highContrast": "#E0607E",
+          "highContrastLight": "#B0304E"
+        }
+      },
+      {
+        "id": "changelists.list6",
+        "description": "Color of the changelist at position 6 (tree icon and editor change markers).",
+        "defaults": {
+          "dark": "#3FB7C7",
+          "light": "#16808E",
+          "highContrast": "#3FB7C7",
+          "highContrastLight": "#16808E"
+        }
+      },
+      {
+        "id": "changelists.list7",
+        "description": "Color of the changelist at position 7 (tree icon and editor change markers).",
+        "defaults": {
+          "dark": "#C9B03A",
+          "light": "#857314",
+          "highContrast": "#C9B03A",
+          "highContrastLight": "#857314"
+        }
+      },
+      {
+        "id": "changelists.list8",
+        "description": "Color of the changelist at position 8 (tree icon and editor change markers).",
+        "defaults": {
+          "dark": "#D2753F",
+          "light": "#9A4615",
+          "highContrast": "#D2753F",
+          "highContrastLight": "#9A4615"
+        }
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "changelists.gettingStarted",
+        "title": "Get Started with Changedeck",
+        "description": "Group your changes, commit what you checked, and put work aside.",
+        "steps": [
+          {
+            "id": "lists",
+            "title": "Group changes into changelists",
+            "description": "Open the Changedeck view and create a list.\n[Open Changedeck](command:changelists.changes.focus)\n[New Changelist](command:changelists.newChangelist)",
+            "media": {
+              "markdown": "resources/walkthrough/lists.md"
+            }
+          },
+          {
+            "id": "commit",
+            "title": "Commit only what you checked",
+            "description": "Tick files and write a message in the Commit panel.\n[Focus Commit Message](command:changelists.focusCommit)",
+            "media": {
+              "markdown": "resources/walkthrough/commit.md"
+            }
+          },
+          {
+            "id": "partial",
+            "title": "Split one file across lists",
+            "description": "Changes are tracked line by line.\n[Switch Active Changelist](command:changelists.switchActive)",
+            "media": {
+              "markdown": "resources/walkthrough/partial.md"
+            }
+          },
+          {
+            "id": "shelf",
+            "title": "Shelve, roll back, undo",
+            "description": "Put work aside and get it back.\n[Open Shelf](command:changelists.shelf.focus)",
+            "media": {
+              "markdown": "resources/walkthrough/shelf.md"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p . && npm run bundle",
+    "bundle": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node18 --sourcemap --minify-syntax",
+    "watch": "tsc -watch -p .",
+    "test": "tsc -p . && node --test out/test/",
+    "test:e2e": "npm run compile && node scripts/e2e.js",
+    "package": "vsce package --allow-missing-repository",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  },
+  "icon": "resources/icon.png",
+  "galleryBanner": {
+    "color": "#151A3A",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RXNova/changedeck.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RXNova/changedeck/issues"
+  },
+  "homepage": "https://github.com/RXNova/changedeck#readme"
+}
