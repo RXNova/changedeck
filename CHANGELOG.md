@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.8
+
+- Fixed: when Git converts line endings (`core.autocrlf`, the default on Windows) but a file on disk uses the other style, every line counted as changed. That broke splitting the file across changelists, partial commits, and unshelving into it. Line-ending-only differences are now ignored, as Git does.
+- The tests no longer depend on the machine's Git line-ending defaults.
+
 ## 1.7.7
 
 - Fixed: dragging files onto a changelist did nothing. The dragged files were carried in a way VS Code did not hand back on drop; they now travel as the extension's own data type. A failed drop is also reported instead of being ignored.

@@ -1,6 +1,6 @@
 import { strict as assert } from 'assert';
 import { describe, it } from 'node:test';
-import { applyHunks, diffLines, dominantList, Hunk, joinLines, mapRanges, matchLists, rangesAfterCommit, splitLines, toRanges } from '../core/partial';
+import { applyHunks, diffLines, dominantList, Hunk, joinLines, mapRanges, matchEol, matchLists, rangesAfterCommit, splitLines, toRanges } from '../core/partial';
 
 /** Deterministic PRNG so failures are reproducible. */
 function rng(seed: number) {
@@ -158,5 +158,18 @@ describe('diffLines precision on rewrites', () => {
 		const hunks = diffLines(base, current);
 		const covered = hunks.reduce((n, h) => n + h.baseEnd - h.baseStart, 0);
 		assert.equal(covered, changedLines, 'only the changed lines are in hunks');
+	});
+});
+
+describe('matchEol', () => {
+	it('gives the base the line endings of the current text', () => {
+		assert.equal(matchEol('a\r\nb\r\n', 'a\nB\n'), 'a\nb\n');
+		assert.equal(matchEol('a\nb\n', 'a\r\nB\r\n'), 'a\r\nb\r\n');
+		assert.equal(matchEol('a\r\nb\r\n', 'a\r\nB\r\n'), 'a\r\nb\r\n');
+	});
+
+	it('leaves the base alone when the current text mixes endings or has none', () => {
+		assert.equal(matchEol('a\r\nb\n', 'x\r\ny\n'), 'a\r\nb\n');
+		assert.equal(matchEol('a\r\nb', 'single line'), 'a\r\nb');
 	});
 });

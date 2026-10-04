@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import { promises as fs } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { matchEol } from './partial';
 import { FileChange } from './types';
 
 export const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
@@ -596,8 +597,12 @@ export async function unshelve(git: Git, sha: string): Promise<UnshelveResult> {
 export async function unshelveFile(git: Git, sha: string, file: ShelfFile): Promise<{ conflict: boolean }> {
 	const abs = path.join(git.root, ...file.path.split('/'));
 	const local = await fs.readFile(abs).catch(() => undefined);
-	const base = file.untracked ? undefined : await git.readFiltered(`${sha}^1`, file.path);
-	const theirs = file.status === 'D' ? undefined : await git.readFiltered(file.untracked ? `${sha}^3` : sha, file.path);
+	// Use the local file's line endings for all three versions, so a CRLF/LF difference between
+	// what Git hands out and what is on disk does not look like a change on every line.
+	const eol = (b: Buffer | undefined) => (b && local && !b.includes(0) && !local.includes(0)
+		? Buffer.from(matchEol(b.toString('latin1'), local.toString('latin1')), 'latin1') : b);
+	const base = eol(file.untracked ? undefined : await git.readFiltered(`${sha}^1`, file.path));
+	const theirs = eol(file.status === 'D' ? undefined : await git.readFiltered(file.untracked ? `${sha}^3` : sha, file.path));
 
 	if (theirs === undefined) {
 		// Shelved as deleted.

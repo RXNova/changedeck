@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import * as vscode from 'vscode';
-import { applyHunks, diffLines, dominantList, Hunk, HunkRange, looksBinary, mapRanges, matchLists, matchRanges, splitLines, toRanges } from './core/partial';
+import { applyHunks, diffLines, dominantList, Hunk, HunkRange, looksBinary, mapRanges, matchEol, matchLists, matchRanges, splitLines, toRanges } from './core/partial';
 import { FileChange } from './core/types';
 import { log } from './log';
 import { Repositories } from './repositories';
@@ -127,8 +127,8 @@ export class PartialTracker implements vscode.Disposable {
 		if ((!usePartial || !listIds) && !useExclusions) { return undefined; }
 
 		const current = await fs.readFile(change.path);
-		const baseText = base.bytes.toString('latin1');
 		const text = current.toString('latin1');
+		const baseText = matchEol(base.bytes.toString('latin1'), text);
 		if (looksBinary(baseText) || looksBinary(text)) { return undefined; }
 		const baseLines = splitLines(baseText);
 		const lines = splitLines(text);
@@ -264,7 +264,7 @@ export class PartialTracker implements vscode.Disposable {
 		if (base && known && known.base !== base.sha) { base = await this.baseOf(subject, true).catch(() => undefined); }
 		const text = doc ? doc.getText() : await fs.readFile(path, 'utf8').catch(() => undefined);
 		if (!base || text === undefined || text.length > MAX_FILE_BYTES) { this.forget(path); return; }
-		const baseText = base.bytes.toString('utf8');
+		const baseText = matchEol(base.bytes.toString('utf8'), text);
 		if (looksBinary(baseText) || looksBinary(text)) { this.forget(path); return; }
 
 		const baseLines = splitLines(baseText);

@@ -274,6 +274,20 @@ export function dominantList(ranges: readonly HunkRange[]): string | undefined {
 	return best;
 }
 
+/**
+ * Returns `base` with the line endings `current` uses. Git can hand out the base with CRLF
+ * (core.autocrlf) while the file on disk has LF, or the other way round; without this, every
+ * line would count as changed. A file that mixes endings is left alone.
+ */
+export function matchEol(base: string, current: string): string {
+	const crlf = (current.match(/\r\n/g) ?? []).length;
+	const lf = (current.match(/\n/g) ?? []).length - crlf;
+	if (crlf > 0 && lf > 0) { return base; }
+	if (crlf === 0 && lf === 0) { return base; }
+	const normalized = base.replace(/\r\n/g, '\n');
+	return crlf > 0 ? normalized.replace(/\n/g, '\r\n') : normalized;
+}
+
 /** Heuristic used by Git as well: a NUL byte in the first 8000 bytes means binary. */
 export function looksBinary(text: string): boolean {
 	return text.slice(0, 8000).includes('\0');

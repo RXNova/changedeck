@@ -24,6 +24,8 @@ function repo(): { root: string; git: Git; write: (p: string, s: string) => void
 	sh(root, 'config', 'user.email', 't@example.com');
 	sh(root, 'config', 'user.name', 'Test');
 	sh(root, 'config', 'commit.gpgsign', 'false');
+	// Keep line endings as written, whatever the machine's Git default is (Windows converts to CRLF).
+	sh(root, 'config', 'core.autocrlf', 'false');
 	const write = (p: string, s: string) => {
 		const full = join(root, p);
 		mkdirSync(join(full, '..'), { recursive: true });
@@ -249,13 +251,14 @@ before(() => { execFileSync('git', ['--version']); });
 
 // ---- Partial changelists --------------------------------------------------------------------
 
-import { applyHunks, diffLines, splitLines } from '../core/partial';
+import { applyHunks, diffLines, matchEol, splitLines } from '../core/partial';
 import { removeFromShelf, unshelveFile } from '../core/git';
 
 /** Content of `file` with only the hunks whose index passes `keep`, as the extension computes it. */
 async function partialContent(git: Git, root: string, rel: string, keep: (i: number) => boolean): Promise<{ content: string; remaining: string; hunks: number }> {
-	const base = splitLines((await git.readFiltered('HEAD', rel))!.toString('latin1'));
-	const current = splitLines(readFileSync(join(root, rel)).toString('latin1'));
+	const text = readFileSync(join(root, rel)).toString('latin1');
+	const base = splitLines(matchEol((await git.readFiltered('HEAD', rel))!.toString('latin1'), text));
+	const current = splitLines(text);
 	const hunks = diffLines(base, current);
 	return {
 		content: applyHunks(base, current, hunks, keep),
@@ -526,5 +529,32 @@ describe('git identity', () => {
 		} finally {
 			for (const [k, v] of Object.entries(saved)) { if (v === undefined) { delete process.env[k]; } else { process.env[k] = v; } }
 		}
+	});
+});
+
+describe('line endings', () => {
+	it('does not treat a CRLF/LF difference between Git and the working file as changes', async () => {
+		const { root, git, write, read } = repo();
+		write('f.txt', TEN.join('\n') + '\n'); sh(root, 'add', '.'); sh(root, 'commit', '-qm', 'init');
+		// Git now hands out CRLF, but the file on disk still has LF (as an editor set to LF would save it).
+		sh(root, 'config', 'core.autocrlf', 'true');
+		const edited = [...TEN]; edited[1] = 'TWO'; edited[8] = 'NINE';
+		write('f.txt', edited.join('\n') + '\n');
+
+		const p = await partialContent(git, root, 'f.txt', i => i === 0);
+		assert.equal(p.hunks, 2, 'only the two real changes are hunks');
+		await commitFiles(git, pick(root, 'f.txt'), 'first only', {}, new Map([[join(root, 'f.txt'), p.content]]));
+		const head = sh(root, 'show', 'HEAD:f.txt');
+		assert.match(head, /TWO/);
+		assert.doesNotMatch(head, /NINE/);
+		assert.ok(!head.includes('\r'));
+
+		// Unshelving into an LF file merges cleanly instead of conflicting on every line.
+		const ref = await shelve(git, pick(root, 'f.txt'), 'nine', 'eol1');
+		write('f.txt', read('f.txt').replace(/\r\n/g, '\n').replace('line 5', 'FIVE'));
+		const r = await unshelve(git, ref.sha);
+		assert.equal(r.conflicts, false);
+		assert.match(read('f.txt'), /FIVE/);
+		assert.match(read('f.txt'), /NINE/);
 	});
 });
