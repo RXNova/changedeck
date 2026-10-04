@@ -2,7 +2,7 @@
   "name": "changedeck",
   "displayName": "Changedeck: JetBrains-style Changelists for Git",
   "description": "JetBrains-style changelists for Git: group changes into named lists (down to individual changes within a file), commit selected changes, shelve and unshelve, roll back, and create patches.",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "publisher": "pradeep",
   "license": "MIT",
   "engines": {
@@ -1131,7 +1131,8 @@
     "test": "tsc -p . && node --test out/test/",
     "test:e2e": "npm run compile && node scripts/e2e.js",
     "package": "vsce package --allow-missing-repository",
-    "vscode:prepublish": "npm run compile"
+    "vscode:prepublish": "npm run compile",
+    "test:dnd": "npm run compile && node scripts/dnd-test.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",

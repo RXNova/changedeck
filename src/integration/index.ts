@@ -267,6 +267,15 @@ async function panelFlow(api: ChangelistsApi): Promise<void> {
 	const { state, changes } = api;
 	const step = (s: string) => console.log(`[integration] panel: ${s}`);
 
+	step('the tree does not refresh while nothing changes');
+	await new Promise(r => setTimeout(r, 1500));
+	let refreshes = 0;
+	const counter = changes.onDidChangeTreeData(() => { refreshes++; });
+	await new Promise(r => setTimeout(r, 3000));
+	counter.dispose();
+	console.log(`[integration] idle tree refreshes in 3s: ${refreshes}`);
+	assert.ok(refreshes <= 1, `the tree refreshed ${refreshes} times in 3 idle seconds`);
+
 	step('tree nodes and context-menu arguments');
 	await vscode.commands.executeCommand('changelists.changes.focus');
 	const list = state.mutate(m => m.create('Tree List'));

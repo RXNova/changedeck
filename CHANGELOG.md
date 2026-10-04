@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.7.7
+
+- Fixed: dragging files onto a changelist did nothing. The dragged files were carried in a way VS Code did not hand back on drop; they now travel as the extension's own data type. A failed drop is also reported instead of being ignored.
+- Added a real drag-and-drop test (`npm run test:dnd`, macOS) that performs genuine drags in an isolated VS Code window.
+
+## 1.7.6
+
+- The Shelf section starts collapsed, so the Changes list gets most of the sidebar. It opens when you click it or shelve something.
+- The Commit panel is more compact, so the Commit buttons stay visible without scrolling.
+- In a split file, "N changes left out" is now counted per changelist instead of showing the file's total under every list.
+- Screenshots in the README.
+
 ## 1.7.5
 
 - The Commit panel's buttons and input boxes use the same 4px rounded corners as VS Code's own commit button and inputs.

@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { Changelist, FileRef } from './core/model';
 import { FileChange } from './core/types';
 import { listColor } from './editorDecorations';
+import { log } from './log';
 import { ChangelistState, UNVERSIONED } from './state';
 
 export type Node = ListNode | UnversionedNode | FolderNode | FileNode;
@@ -21,8 +22,21 @@ export interface FileNode { readonly type: 'file'; readonly owner: string; reado
 
 /** Fragment on tree rows' resource URIs; see ChangelistFileDecorations. */
 const TREE_FRAGMENT = 'changelists';
-const DRAG_MIME = 'application/vnd.code.tree.changelists.changes';
-const LIST_MIME = 'application/vnd.code.tree.changelists.lists';
+/** The tree's own mime type. VS Code fills it with internal row handles; listing it allows drops within the tree. */
+const TREE_MIME = 'application/vnd.code.tree.changelists.changes';
+/** Our payloads, as JSON text so they arrive unchanged however VS Code transports them. */
+const FILES_MIME = 'application/vnd.changedeck.files';
+const LISTS_MIME = 'application/vnd.changedeck.lists';
+
+/** Reads a JSON payload that may arrive as text or as the original object. */
+async function payload<T>(item: vscode.DataTransferItem | undefined): Promise<T | undefined> {
+	if (!item) { return undefined; }
+	const value: unknown = item.value;
+	if (value && typeof value === 'object') { return value as T; }
+	const text = typeof value === 'string' ? value : await item.asString();
+	if (!text) { return undefined; }
+	try { return JSON.parse(text) as T; } catch { return undefined; }
+}
 
 const KIND_LABEL: Record<FileChange['kind'], string> = {
 	modified: 'Modified', added: 'Added', deleted: 'Deleted', renamed: 'Renamed', copied: 'Copied',
@@ -34,8 +48,8 @@ export function isNode(value: unknown): value is Node {
 }
 
 export class ChangesView implements vscode.TreeDataProvider<Node>, vscode.TreeDragAndDropController<Node>, vscode.Disposable {
-	readonly dragMimeTypes = [DRAG_MIME, LIST_MIME, 'text/uri-list'];
-	readonly dropMimeTypes = [DRAG_MIME, LIST_MIME, 'text/uri-list'];
+	readonly dragMimeTypes = [TREE_MIME, FILES_MIME, LISTS_MIME, 'text/uri-list'];
+	readonly dropMimeTypes = [TREE_MIME, FILES_MIME, LISTS_MIME, 'text/uri-list'];
 
 	private readonly emitter = new vscode.EventEmitter<Node | undefined>();
 	readonly onDidChangeTreeData = this.emitter.event;
@@ -268,41 +282,57 @@ export class ChangesView implements vscode.TreeDataProvider<Node>, vscode.TreeDr
 	handleDrag(source: readonly Node[], data: vscode.DataTransfer): void {
 		// Dragging only changelists reorders them; anything else moves files.
 		if (source.length && source.every(n => n.type === 'list')) {
-			data.set(LIST_MIME, new vscode.DataTransferItem(source.map(n => (n as ListNode).list.id)));
+			data.set(LISTS_MIME, new vscode.DataTransferItem(JSON.stringify(source.map(n => (n as ListNode).list.id))));
 			return;
 		}
 		const refs = source.flatMap(n => (n.type === 'list' ? [] : this.refsUnder(n)));
 		const files = [...new Set(refs.map(r => r.path))];
 		if (!files.length) { return; }
-		data.set(DRAG_MIME, new vscode.DataTransferItem(refs));
+		data.set(FILES_MIME, new vscode.DataTransferItem(JSON.stringify(refs)));
 		data.set('text/uri-list', new vscode.DataTransferItem(files.filter(f => this.state.change(f)?.kind !== 'deleted').map(f => vscode.Uri.file(f).toString()).join('\r\n')));
 	}
 
 	async handleDrop(target: Node | undefined, data: vscode.DataTransfer): Promise<void> {
-		const lists = data.get(LIST_MIME);
-		if (lists) {
-			const ids = lists.value as string[];
-			const before = target?.type === 'list' ? target.list.id : undefined;
+		try {
+			await this.drop(target, data);
+		} catch (e) {
+			log().error(`Drop failed: ${e instanceof Error ? e.stack ?? e.message : e}`);
+			void vscode.window.showErrorMessage(`Could not move the dragged items: ${e instanceof Error ? e.message : e}`);
+		}
+	}
+
+	private async drop(target: Node | undefined, data: vscode.DataTransfer): Promise<void> {
+		const lists = await payload<string[]>(data.get(LISTS_MIME));
+		if (Array.isArray(lists)) {
+			// Dropped on a list: move in front of it. Dropped on empty space or Unversioned Files: move to the end.
 			if (target && target.type !== 'list' && target.type !== 'unversioned') { return; }
-			this.state.mutate(m => { for (const id of ids) { if (m.get(id) && id !== before) { m.reorder(id, before); } } });
+			const before = target?.type === 'list' ? target.list.id : undefined;
+			this.state.mutate(m => { for (const id of lists) { if (m.get(id) && id !== before) { m.reorder(id, before); } } });
 			return;
 		}
 		if (!target) { return; }
-		let refs: FileRef[] = [];
-		const ours = data.get(DRAG_MIME);
-		if (ours) {
-			refs = ours.value as FileRef[];
-		} else {
+		let refs = await payload<FileRef[]>(data.get(FILES_MIME));
+		if (!Array.isArray(refs)) {
+			// Dragged from the Explorer or another view: plain file URIs.
 			const uris = await data.get('text/uri-list')?.asString();
 			if (!uris) { return; }
 			refs = uris.split(/\r?\n/).map(s => s.trim()).filter(s => s && !s.startsWith('#')).flatMap(s => {
 				try { return [{ path: vscode.Uri.parse(s, true).fsPath }]; } catch { return []; }
 			});
 		}
+		const seen = new Set<string>();
 		const targets = refs.flatMap(r => {
-			const change = this.state.change(r.path);
-			return change ? [{ change, list: r.listId && this.state.model.isPartial(r.path) ? r.listId : undefined }] : [];
+			const change = typeof r?.path === 'string' ? this.state.change(r.path) : undefined;
+			const key = `${r?.path}\0${r?.listId ?? ''}`;
+			if (!change || seen.has(key)) { return []; }
+			seen.add(key);
+			return [{ change, list: r.listId && this.state.model.isPartial(change.path) ? r.listId : undefined }];
 		});
+		if (!targets.length) {
+			log().info('Drop ignored: none of the dragged files is a changed file');
+			return;
+		}
+		log().info(`Moving ${targets.length} dragged file${targets.length === 1 ? '' : 's'} to ${this.ownerOfNode(target)}`);
 		await vscode.commands.executeCommand('changelists.moveFilesTo', targets, this.ownerOfNode(target));
 	}
 
