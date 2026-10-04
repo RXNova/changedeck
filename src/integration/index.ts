@@ -166,16 +166,14 @@ async function partialFlow(api: ChangelistsApi, root: string): Promise<void> {
 	await waitFor('editor reloaded', () => !doc.isDirty && !/SEVEN/.test(doc.getText()));
 	await setLine(10, 'ELEVEN');
 	await waitFor('split for shelve', () => state.model.isPartial(p));
-	const sel = await tracker.selection(state.change(p)!, [feature.id]);
-	assert.ok(sel, 'selection available');
-	await git.shelve(api.repos.git(root), [state.change(p)!], 'eleven', 'it-p', new Map([[p, { shelved: sel.content, remaining: sel.remaining }]]));
-	await shelf.setMeta('it-p', { name: 'eleven', listName: 'Feature' });
-	await shelf.reload();
-	await api.repos.refresh();
+	// Shelve through the same path as the Shelve command: operations run exclusively with change
+	// tracking paused, so the file's in-between states while it is rewritten are never observed.
+	await commands.exclusive('shelve', () => commands.shelveTargets([{ change: state.change(p)!, list: feature.id }], 'eleven', 'Feature'));
 	await waitFor('ELEVEN shelved', () => !/ELEVEN/.test(readFileSync(p, 'utf8')) && !state.model.isPartial(p));
 	await waitFor('editor reloaded after shelve', () => !/ELEVEN/.test(doc.getText()));
 	await setLine(2, 'THREE');
-	const node = shelf.all().find(s => s.ref.id === 'it-p')!;
+	const node = shelf.all().find(s => s.name === 'eleven')!;
+	assert.ok(node, 'the shelf is listed');
 	await vscode.commands.executeCommand('changelists.unshelve', node);
 	await waitFor('ELEVEN back', () => /ELEVEN/.test(readFileSync(p, 'utf8')));
 	assert.match(readFileSync(p, 'utf8'), /THREE/);

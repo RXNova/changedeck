@@ -2,7 +2,7 @@
 
 ## 1.7.9
 
-- Fixed: after an unshelve or rollback rewrote a file that was open in an editor, the change tracking could keep using the editor's old text and miss the new changes (seen intermittently on Windows). Files without unsaved edits are now read from disk.
+- No functional changes. The end-to-end test now shelves through the same code path as the Shelve command, which removes an intermittent test failure on CI.
 
 ## 1.7.8
 
