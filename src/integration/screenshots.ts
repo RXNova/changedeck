@@ -60,7 +60,7 @@ export async function run(): Promise<void> {
 	rmSync(STAGE_DIR, { recursive: true, force: true });
 	mkdirSync(STAGE_DIR, { recursive: true });
 
-	const api = (await vscode.extensions.getExtension<ChangelistsApi>('pradeep.changedeck')!.activate())!;
+	const api = (await vscode.extensions.getExtension<ChangelistsApi>('rxnova.changedeck')!.activate())!;
 	while (api.repos.count === 0) { await sleep(100); }
 	const { state, tracker, shelf, commitView } = api;
 	const config = vscode.workspace.getConfiguration('changelists');

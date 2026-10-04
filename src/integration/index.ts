@@ -23,7 +23,7 @@ function sh(cwd: string, ...args: string[]): string {
 export async function run(): Promise<void> {
 	const root = vscode.workspace.workspaceFolders![0].uri.fsPath;
 	const file = (p: string) => path.join(root, p);
-	const ext = vscode.extensions.getExtension<ChangelistsApi>('pradeep.changedeck')!;
+	const ext = vscode.extensions.getExtension<ChangelistsApi>('rxnova.changedeck')!;
 	const api = (await ext.activate())!;
 	assert.ok(api, 'extension activated');
 	const { state, commands, shelf } = api;

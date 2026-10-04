@@ -9,7 +9,7 @@ import type { ChangelistsApi } from '../extension';
 export async function run(): Promise<void> {
 	const root = vscode.workspace.workspaceFolders![0].uri.fsPath;
 	const file = (p: string) => path.join(root, p);
-	const api = (await vscode.extensions.getExtension<ChangelistsApi>('pradeep.changedeck')!.activate())!;
+	const api = (await vscode.extensions.getExtension<ChangelistsApi>('rxnova.changedeck')!.activate())!;
 	while (api.repos.count === 0) { await new Promise(r => setTimeout(r, 100)); }
 	const { state } = api;
 

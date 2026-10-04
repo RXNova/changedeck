@@ -14,7 +14,7 @@ export async function run(): Promise<void> {
 	const root = vscode.workspace.workspaceFolders![0].uri.fsPath;
 	rmSync(DIR, { recursive: true, force: true });
 	mkdirSync(DIR, { recursive: true });
-	const api = (await vscode.extensions.getExtension<ChangelistsApi>('pradeep.changedeck')!.activate())!;
+	const api = (await vscode.extensions.getExtension<ChangelistsApi>('rxnova.changedeck')!.activate())!;
 	while (api.repos.count === 0) { await sleep(100); }
 	const { state } = api;
 
