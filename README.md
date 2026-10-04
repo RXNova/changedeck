@@ -4,6 +4,8 @@
 
 Group your changes into named lists, down to individual changes within a file. Commit only what you check, shelve work you want to put aside, and roll back or export changes as patches.
 
+**New here? Read the [User Guide](docs/USER_GUIDE.md)** for a step-by-step walkthrough with screenshots.
+
 ## Features
 
 **Changelists**
