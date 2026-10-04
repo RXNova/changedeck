@@ -2,7 +2,7 @@
   "name": "changedeck",
   "displayName": "Changedeck: JetBrains-style Changelists for Git",
   "description": "JetBrains-style changelists for Git: group changes into named lists (down to individual changes within a file), commit selected changes, shelve and unshelve, roll back, and create patches.",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "publisher": "pradeep",
   "license": "MIT",
   "engines": {
@@ -59,7 +59,8 @@
         },
         {
           "id": "changelists.shelf",
-          "name": "Shelf"
+          "name": "Shelf",
+          "visibility": "collapsed"
         }
       ]
     },

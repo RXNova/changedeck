@@ -165,7 +165,12 @@ export class ChangesView implements vscode.TreeDataProvider<Node>, vscode.TreeDr
 		if (c.originalPath) { descriptions.push(`← ${path.relative(path.dirname(c.path), c.originalPath).split(path.sep).join('/')}`); }
 		const partial = this.state.model.isPartial(c.path);
 		if (partial) { descriptions.push('· partial'); }
-		const left = this.state.model.excludedOf(c.path)?.ranges.length;
+		// Changes left out of the commit, counted for this list's part of a split file only.
+		const excluded = this.state.model.excludedOf(c.path)?.ranges ?? [];
+		const split = this.state.model.partialOf(c.path);
+		const left = split
+			? excluded.filter(([start, end]) => split.ranges.some(r => r.listId === node.owner && r.start <= end && start <= r.end)).length
+			: excluded.length;
 		if (left) { descriptions.push(`· ${left} change${left === 1 ? '' : 's'} left out`); }
 		item.description = descriptions.join('  ');
 		item.contextValue = c.untracked ? 'file.untracked' : partial ? 'file.partial' : 'file';

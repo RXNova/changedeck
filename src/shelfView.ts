@@ -99,6 +99,10 @@ export class ShelfView implements vscode.TreeDataProvider<ShelfTreeNode>, vscode
 		return p;
 	}
 
+	getParent(node: ShelfTreeNode): ShelfTreeNode | undefined {
+		return node.type === 'shelfFile' ? node.shelf : undefined;
+	}
+
 	async getChildren(node?: ShelfTreeNode): Promise<ShelfTreeNode[]> {
 		if (!node) { return this.shelves; }
 		if (node.type === 'shelf') {

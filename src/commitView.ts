@@ -161,6 +161,12 @@ export class CommitView implements vscode.WebviewViewProvider, vscode.Disposable
 		this.post();
 	}
 
+	/** Opens (or closes) the panel's Options section, where the author and commit options are. */
+	async showOptions(open = true): Promise<void> {
+		await vscode.commands.executeCommand('changelists.commit.focus');
+		void this.view?.webview.postMessage({ type: 'showOptions', open });
+	}
+
 	setBusy(busy: boolean): void {
 		this.busy = busy;
 		this.post();
@@ -259,22 +265,22 @@ export class CommitView implements vscode.WebviewViewProvider, vscode.Disposable
 <meta http-equiv="Content-Security-Policy" content="${csp}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style nonce="${nonce}">
-	body { padding: 8px 12px 12px; color: var(--vscode-foreground); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); }
+	body { padding: 6px 12px 10px; color: var(--vscode-foreground); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); }
 	textarea {
-		width: 100%; box-sizing: border-box; min-height: 72px; resize: vertical;
+		width: 100%; box-sizing: border-box; min-height: 54px; resize: vertical;
 		color: var(--vscode-input-foreground); background: var(--vscode-input-background);
 		border: 1px solid var(--vscode-input-border, transparent); border-radius: 4px;
 		padding: 6px; font-family: var(--vscode-font-family); font-size: var(--vscode-font-size);
 	}
 	textarea:focus { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
 	textarea::placeholder { color: var(--vscode-input-placeholderForeground); }
-	.row { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+	.row { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
 	.summary { color: var(--vscode-descriptionForeground); margin-top: 6px; overflow-wrap: anywhere; }
 	#committingAs { margin-top: 2px; }
 	#committingAs.warn { color: var(--vscode-editorWarning-foreground); }
 	#committingAs b { color: var(--vscode-foreground); font-weight: 600; }
 	label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
-	.buttons { display: flex; gap: 6px; margin-top: 10px; }
+	.buttons { display: flex; gap: 6px; margin-top: 8px; }
 	button {
 		flex: 1; padding: 4px 8px; border: 1px solid var(--vscode-button-border, transparent); border-radius: 4px; cursor: pointer;
 		color: var(--vscode-button-foreground); background: var(--vscode-button-background); font-family: inherit; font-size: inherit; line-height: 18px;
@@ -287,7 +293,7 @@ export class CommitView implements vscode.WebviewViewProvider, vscode.Disposable
 	.link { flex: none; background: none; border: none; color: var(--vscode-textLink-foreground); padding: 0; cursor: pointer; font: inherit; }
 	.link:hover:not(:disabled) { background: none; text-decoration: underline; }
 	.spacer { flex: 1; }
-	details { margin-top: 8px; }
+	details { margin-top: 6px; }
 	summary { cursor: pointer; color: var(--vscode-descriptionForeground); user-select: none; }
 	.options { display: grid; gap: 6px; margin-top: 6px; padding-left: 2px; }
 	input[type=text] {
@@ -306,7 +312,7 @@ export class CommitView implements vscode.WebviewViewProvider, vscode.Disposable
 </style>
 </head>
 <body>
-	<textarea id="message" rows="4" aria-label="Commit message" placeholder="Commit message"></textarea>
+	<textarea id="message" rows="3" aria-label="Commit message" placeholder="Commit message"></textarea>
 	<div class="row">
 		<label><input type="checkbox" id="amend"> Amend last commit</label>
 		<span class="spacer"></span>
@@ -474,6 +480,10 @@ export class CommitView implements vscode.WebviewViewProvider, vscode.Disposable
 			update();
 		} else if (msg.type === 'focus') {
 			message.focus();
+		} else if (msg.type === 'showOptions') {
+			const box = document.getElementById('optionsBox');
+			box.open = msg.open !== false;
+			if (box.open) { box.scrollIntoView({ block: 'start' }); } else { window.scrollTo(0, 0); }
 		}
 	});
 	update();

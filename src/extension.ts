@@ -22,6 +22,7 @@ export interface ChangelistsApi {
 	repos: Repositories;
 	changes: ChangesView;
 	extras: Extras;
+	commitView: CommitView;
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<ChangelistsApi | undefined> {
@@ -117,7 +118,7 @@ function setup(context: vscode.ExtensionContext, api: API): ChangelistsApi {
 		state.onDidChange(onChange),
 		vscode.window.onDidChangeActiveTextEditor(updateEditorContext),
 	);
-	return { state, commands, shelf, repos, tracker, changes, extras };
+	return { state, commands, shelf, repos, tracker, changes, extras, commitView };
 }
 
 export function deactivate(): void { /* everything is disposed through context.subscriptions */ }
