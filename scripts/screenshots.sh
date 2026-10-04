@@ -53,6 +53,8 @@ for _ in $(seq 1 1200); do
   if [ -n "$id" ]; then
     screencapture -x -o -l "$id" "$tmp/shot.png"
     sips -Z 1800 "$tmp/shot.png" --out "$out/$stage.png" >/dev/null
+    # FULL_DIR keeps the full-resolution captures, which scripts/crop-guide.sh crops for the user guide.
+    if [ -n "${FULL_DIR:-}" ]; then mkdir -p "$FULL_DIR"; cp "$tmp/shot.png" "$FULL_DIR/$stage.png"; fi
     echo "captured $stage"
   else
     echo "window not found for $stage" >&2
