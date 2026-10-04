@@ -262,7 +262,11 @@ export class PartialTracker implements vscode.Disposable {
 		let base = await this.baseOf(subject).catch(() => undefined);
 		const known = model.partialOf(path);
 		if (base && known && known.base !== base.sha) { base = await this.baseOf(subject, true).catch(() => undefined); }
-		const text = doc ? doc.getText() : await fs.readFile(path, 'utf8').catch(() => undefined);
+		// An editor's text counts only while it has unsaved edits. Otherwise the file on disk is the
+		// truth: after Git rewrites a file (unshelve, rollback), the editor can lag behind or miss
+		// the change, and its stale text would hide the new hunks.
+		const onDisk = doc?.isDirty ? undefined : await fs.readFile(path, 'utf8').catch(() => undefined);
+		const text = onDisk ?? doc?.getText();
 		if (!base || text === undefined || text.length > MAX_FILE_BYTES) { this.forget(path); return; }
 		const baseText = matchEol(base.bytes.toString('utf8'), text);
 		if (looksBinary(baseText) || looksBinary(text)) { this.forget(path); return; }

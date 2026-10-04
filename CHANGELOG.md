@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.9
+
+- Fixed: after an unshelve or rollback rewrote a file that was open in an editor, the change tracking could keep using the editor's old text and miss the new changes (seen intermittently on Windows). Files without unsaved edits are now read from disk.
+
 ## 1.7.8
 
 - Fixed: when Git converts line endings (`core.autocrlf`, the default on Windows) but a file on disk uses the other style, every line counted as changed. That broke splitting the file across changelists, partial commits, and unshelving into it. Line-ending-only differences are now ignored, as Git does.
